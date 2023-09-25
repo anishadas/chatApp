@@ -1,17 +1,34 @@
-import React from 'react'
-const Message = () => {
+import React, { useContext, useEffect, useRef } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../context/ChatContext";
+const Message = ({ message }) => {
+  const { currUser } = useContext(AuthContext);
+  const { data } = useContext(ChatContext);
+
+  const ref = useRef()
+  // console.log(message)
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: "smooth" })
+  }, [message]);
+
   return (
-    <div className='message owner'>
-      <div className='msgInfo'>
-        <img src='https://cdn-icons-png.flaticon.com/128/11498/11498793.png' />
-        <span>Anisha</span>
+    <div ref={ref}
+      className={`message ${message.senderId === currUser.uid && "owner"}`}>
+      <div className="msgInfo">
+        <img src={message.senderId === currUser.uid ? currUser.photoURL : data.user.photoURL} />
+        <span>just now</span>
       </div>
-      <div className='msgCont'>
-        <p>Hello, how are you??</p>
-        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60" alt='img'/>
+      <div className="msgCont">
+        {console.log("hi",message.text)}
+        <p>{message.text}</p>
+        {message.img && <img
+          src={message.img}
+          alt="img"
+        />
+        }
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Message
+export default Message;

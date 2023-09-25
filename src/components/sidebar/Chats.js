@@ -1,59 +1,50 @@
-import React from 'react'
+import { onSnapshot,doc } from "firebase/firestore";
+import React, { useContext, useEffect, useState } from "react";
+import { db } from "../../Firebase";
+import { AuthContext } from "../../context/AuthContext";
+import { ChatContext } from "../../context/ChatContext";
 
 const Chats = () => {
-  return (
-    <div className='chats'>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60' alt='chat' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8cHJvZmlsZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60' alt='chat' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>see u tomorrow</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://cdn-icons-png.flaticon.com/128/11498/11498793.png' alt='chet' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60' alt='chet' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60' alt='chet' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60' alt='chet' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-      <div className='userChat'>
-        <img src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHByb2ZpbGV8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=500&q=60' alt='chet' />
-        <div className='userInfo'>
-          <span>Anisha</span>
-          <p>Hello</p>
-        </div>
-      </div>
-    </div>
-  )
-}
+  const [chats, setChats] = useState([]);
+  const { currUser } = useContext(AuthContext);
+  const { dispatch } = useContext(ChatContext);
+  // to fetch realtime - onSnapshot
+  useEffect(() => {
+    const getChats = () => {
+      const unsub = onSnapshot(doc(db, "userChats", currUser.uid), (doc) => {
+        setChats(doc.data())
+      });
 
-export default Chats
+      return () => {
+        unsub();
+      }
+    }
+
+    currUser.uid && getChats();
+  }, [currUser.uid]);
+
+  console.log(chats)
+
+  const handleSelect = (user) => {
+    dispatch({ type:"CHANGE_USER",payload:user})
+  }
+  return (
+    <div className="chats">
+      {chats && Object.entries(chats)?.sort((a,b)=>b[1].date-a[1].date).map(chat => (
+        <div className="userChat" key={chat[0]} onClick={()=>handleSelect(chat[1].userInfo)}>
+          <img
+            src={chat[1].userInfo.photoURL}
+            alt="chat"
+          />
+          <div className="userInfo">
+            <span>{chat[1].userInfo.displayName}</span>
+            <p>{chat[1].lastMessage?.text }</p>
+          </div>
+        </div>  
+      ))}
+      
+    </div>
+  );
+};
+
+export default Chats;
